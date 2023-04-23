@@ -1,0 +1,28 @@
+run:
+  deadline: 600s
+  tests: true
+
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - gocritic
+    - goimports
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - misspell
+    - nakedret
+    - revive
+    - staticcheck
+    - typecheck
+    - unconvert
+    - unused
+
+linters-settings:
+  lll:
+    line-length: 120
+
+issues:
+  exclude-use-default: false

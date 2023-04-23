@@ -1,0 +1,46 @@
+name: Feature Request
+description: Suggest an idea for this project without a plan for implementation
+title: "Feature: "
+labels: ["feature", "triage"]
+assignees:
+  - rafaeljusto
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for suggesting an idea for this project!
+  - type: textarea
+    id: problem
+    attributes:
+      description: Is your feature request related to a problem? Please describe.
+      label: "Describe your problem"
+      placeholder: A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      description: Describe the solution you'd like
+      placeholder: A clear and concise description of what you want to happen.
+      label: Describe your ideal solution
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      description: Describe alternatives you've considered
+      label: Workarounds or alternatives
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      description: Add any other context or screenshots about the feature request here.
+      label: Additional Context
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/rafaeljusto/goe2ee/blob/main/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
