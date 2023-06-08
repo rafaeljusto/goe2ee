@@ -1,5 +1,7 @@
 # Chat
 
+![goe2ee-chat](./goe2ee-chat.gif "Chat Example")
+
 When talking about end-to-end encryption a chat solution is something that
 usually comes into discussion. For this reason, this example illustrates how a
 chat application would work using goe2ee.
@@ -77,5 +79,3 @@ and a UDP user:
 ```shell
 go run cmd/user/main.go -name James -registry localhost:62465 -network udp
 ```
-
-![goe2ee-chat](https://github.com/rafaeljusto/goe2ee/assets/611469/57822368-7df5-49c4-9c18-6662c178778d)
