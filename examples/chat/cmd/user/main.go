@@ -168,7 +168,7 @@ func newService(user chat.User, registry *chat.Registry) *service {
 	}
 }
 
-func (s *service) handleMessage(w io.Writer, r io.Reader, remoteAddr net.Addr) error {
+func (s *service) handleMessage(w io.Writer, r io.Reader, _ net.Addr) error {
 	var message chat.Message
 	if err := json.NewDecoder(r).Decode(&message); err != nil {
 		return err

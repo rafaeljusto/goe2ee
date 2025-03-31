@@ -120,7 +120,7 @@ func TestPublicKey_VerifySignature(t *testing.T) {
 		},
 		hashType: crypto.SHA512,
 		content:  []byte("hello world"),
-		signature: func(privateKey crypto.PrivateKey) []byte {
+		signature: func(crypto.PrivateKey) []byte {
 			return []byte("invalid signature")
 		},
 		want:    false,
@@ -171,7 +171,7 @@ func TestPublicKey_VerifySignature(t *testing.T) {
 		},
 		hashType: crypto.SHA512,
 		content:  []byte("hello world"),
-		signature: func(privateKey crypto.PrivateKey) []byte {
+		signature: func(crypto.PrivateKey) []byte {
 			return []byte("invalid signature")
 		},
 		want:    false,
@@ -192,7 +192,7 @@ func TestPublicKey_VerifySignature(t *testing.T) {
 		},
 		hashType: crypto.SHA512,
 		content:  []byte("hello world"),
-		signature: func(privateKey crypto.PrivateKey) []byte {
+		signature: func(crypto.PrivateKey) []byte {
 			return []byte("something")
 		},
 		want:    false,
