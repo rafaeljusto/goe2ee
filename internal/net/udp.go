@@ -70,13 +70,13 @@ func (c *UDPConn) Write(p []byte) (int, error) {
 	if conn, ok := c.PacketConn.(net.Conn); ok {
 		return conn.Write(p)
 	}
-	return c.PacketConn.WriteTo(p, c.addr)
+	return c.WriteTo(p, c.addr)
 }
 
 // Receive reads data from the connection.
 func (c *UDPConn) Receive() (int, error) {
 	buffer := make([]byte, int64(math.Pow(2, 16))) // maximum UDP packet size
-	n, addr, err := c.PacketConn.ReadFrom(buffer)
+	n, addr, err := c.ReadFrom(buffer)
 	if err != nil {
 		return n, err
 	}
@@ -94,7 +94,7 @@ func (c *UDPConn) Close() error {
 	defer func() {
 		c.connRead = false
 	}()
-	n, err := c.PacketConn.WriteTo(c.writeBuffer.Bytes(), c.addr)
+	n, err := c.WriteTo(c.writeBuffer.Bytes(), c.addr)
 	if err != nil {
 		return err
 	}

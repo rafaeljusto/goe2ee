@@ -52,7 +52,7 @@ func usersHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		var users []chat.User
-		usersStore.Range(func(key, value any) bool {
+		usersStore.Range(func(_, value any) bool {
 			users = append(users, value.(chat.User))
 			return true
 		})
