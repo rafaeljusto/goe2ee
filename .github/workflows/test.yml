@@ -6,9 +6,9 @@ on:
       - main
 
 env:
-  GO_VERSION: "1.20.x"
+  GO_VERSION: "1.24.x"
 
-  concurrency:
+concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
@@ -41,5 +41,7 @@ jobs:
       - name: Lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.1
+          # golangci-lint must be built with Go >= the go.mod directive (1.24),
+          # otherwise its type-checker fails with "cannot compile Go 1.24 code".
+          version: v2.11.4
           only-new-issues: true
