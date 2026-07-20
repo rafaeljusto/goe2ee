@@ -14,6 +14,7 @@ func TestParseProcessRequestRejectsOversizedMessage(t *testing.T) {
 	var buf bytes.Buffer
 	buf.WriteByte(0)            // flags
 	buf.Write(make([]byte, 16)) // id
+	buf.Write(make([]byte, 8))  // counter
 	var size [8]byte            // messageSize (BigEndian uint64)
 	binary.BigEndian.PutUint64(size[:], uint64(MaxMessageSize)+1)
 	buf.Write(size[:])

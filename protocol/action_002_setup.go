@@ -12,9 +12,9 @@ import (
 // HashType is the hash type used for verifying the signature.
 type HashType uint8
 
-// Supported hash types.
+// Supported hash types. SHA-1 is intentionally not supported: it is
+// cryptographically broken and must not be used for signatures.
 const (
-	HashTypeSHA1   HashType = 0x1
 	HashTypeSHA256 HashType = 0x2
 	HashTypeSHA384 HashType = 0x3
 	HashTypeSHA512 HashType = 0x4
@@ -23,8 +23,6 @@ const (
 // NewHashType creates a new HashType from the crypto.Hash.
 func NewHashType(h crypto.Hash) HashType {
 	switch h {
-	case crypto.SHA1:
-		return HashTypeSHA1
 	case crypto.SHA256:
 		return HashTypeSHA256
 	case crypto.SHA384:
@@ -39,8 +37,6 @@ func NewHashType(h crypto.Hash) HashType {
 // String returns the string representation of the hash type.
 func (h HashType) String() string {
 	switch h {
-	case HashTypeSHA1:
-		return "SHA1"
 	case HashTypeSHA256:
 		return "SHA256"
 	case HashTypeSHA384:
@@ -54,8 +50,6 @@ func (h HashType) String() string {
 // CryptoHash returns the crypto.Hash corresponding to the hash type.
 func (h HashType) CryptoHash() crypto.Hash {
 	switch h {
-	case HashTypeSHA1:
-		return crypto.SHA1
 	case HashTypeSHA256:
 		return crypto.SHA256
 	case HashTypeSHA384:
@@ -64,6 +58,29 @@ func (h HashType) CryptoHash() crypto.Hash {
 		return crypto.SHA512
 	}
 	panic("unsupported hash type")
+}
+
+// SetupTranscript builds the byte string that the server signs and the client
+// verifies during the setup handshake. Binding both public keys and the session
+// id (rather than only the server's ephemeral key) prevents an attacker from
+// transplanting a valid server signature onto a different key exchange.
+func SetupTranscript(clientPublicKey, serverPublicKey *ecdh.PublicKey, id [16]byte) ([]byte, error) {
+	clientBytes, err := x509.MarshalPKIXPublicKey(clientPublicKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode client public key: %w", err)
+	}
+	serverBytes, err := x509.MarshalPKIXPublicKey(serverPublicKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode server public key: %w", err)
+	}
+
+	buffer := make([]byte, 0, 8+len(clientBytes)+len(serverBytes)+len(id))
+	buffer = binary.BigEndian.AppendUint32(buffer, uint32(len(clientBytes)))
+	buffer = append(buffer, clientBytes...)
+	buffer = binary.BigEndian.AppendUint32(buffer, uint32(len(serverBytes)))
+	buffer = append(buffer, serverBytes...)
+	buffer = append(buffer, id[:]...)
+	return buffer, nil
 }
 
 // SetupRequest is the request sent by the client to the server to register a

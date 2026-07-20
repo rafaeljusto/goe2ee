@@ -5,7 +5,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/ed25519"
 	"crypto/rsa"
-	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
 	"fmt"
@@ -21,8 +20,6 @@ type PublicKey struct {
 func (p PublicKey) VerifySignature(hashType crypto.Hash, content, signature []byte) (bool, error) {
 	var hash hash.Hash
 	switch hashType {
-	case crypto.SHA1:
-		hash = sha1.New()
 	case crypto.SHA256:
 		hash = sha256.New()
 	case crypto.SHA384:

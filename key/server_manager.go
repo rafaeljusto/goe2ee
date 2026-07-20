@@ -7,7 +7,6 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
 	"crypto/x509"
@@ -115,8 +114,6 @@ func (s *ServerManagerInMemory) FetchKey() (protocol.KeyAlgorithm, PublicKey, er
 func (s *ServerManagerInMemory) Sign(hashType crypto.Hash, content []byte) ([]byte, error) {
 	var h hash.Hash
 	switch hashType {
-	case crypto.SHA1:
-		h = sha1.New()
 	case crypto.SHA256:
 		h = sha256.New()
 	case crypto.SHA384:

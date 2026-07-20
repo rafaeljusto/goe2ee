@@ -16,6 +16,7 @@ const (
 	ErrorCodeServerError        ErrorCode = 0x02
 	ErrorCodeUnknownClient      ErrorCode = 0x03
 	ErrorCodeUnsupportedVersion ErrorCode = 0x04
+	ErrorCodeReplayDetected     ErrorCode = 0x05
 )
 
 // ErrorResponse is the response sent by the server to the client when an error

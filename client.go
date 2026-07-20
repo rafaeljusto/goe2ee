@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sync/atomic"
 	"time"
 
 	internalclient "github.com/rafaeljusto/goe2ee/internal/client"
@@ -106,19 +107,29 @@ func ClientWithExpectReply(expectReply bool) func(*ClientOptions) {
 	}
 }
 
+// clientSession holds the state shared between all connections that use the
+// same shared secret (for example every connection handed out by a ClientPool).
+// The send counter must be shared so that the AEAD nonce is never reused across
+// those connections; it is incremented atomically for every message.
+type clientSession struct {
+	secret      []byte
+	id          [16]byte
+	sendCounter atomic.Uint64
+}
+
 // Client is the client-side of the E2EE protocol. It implements the net.Conn
 // interface to be used as a regular connection.
 type Client struct {
-	hostport     string
-	pool         *ClientPool
-	conn         net.Conn
-	keyFetcher   key.ClientFetcher
-	readTimeout  time.Duration
-	writeTimeout time.Duration
-	expectReply  bool
-	secret       []byte
-	id           [16]byte
-	buffer       bytes.Buffer
+	hostport        string
+	pool            *ClientPool
+	conn            net.Conn
+	keyFetcher      key.ClientFetcher
+	readTimeout     time.Duration
+	writeTimeout    time.Duration
+	expectReply     bool
+	session         *clientSession
+	lastSentCounter uint64
+	buffer          bytes.Buffer
 }
 
 // DialTCP connects to the server using TCP. The hostport follows the pattern
@@ -268,9 +279,15 @@ func (c *Client) handshake() error {
 
 	hashType := setupResponse.HashType()
 	signature := setupResponse.Signature()
-	setupResponse.SetSignature(0, nil) // clear the response before verifying the signature
 
-	validSignature, err := serverPublicKey.VerifySignature(hashType.CryptoHash(), setupResponse.Bytes(), signature)
+	// Verify the signature over the full handshake transcript (both public keys
+	// and the session id), matching what the server signs.
+	transcript, err := protocol.SetupTranscript(clientPrivateKey.PublicKey(), setupResponse.PublicKey(), id)
+	if err != nil {
+		return fmt.Errorf("failed to build setup transcript for '%s': %w", c.hostport, err)
+	}
+
+	validSignature, err := serverPublicKey.VerifySignature(hashType.CryptoHash(), transcript, signature)
 	if err != nil {
 		return fmt.Errorf("failed to verify signature of setup response from '%s': %w", c.hostport, err)
 	} else if !validSignature {
@@ -282,8 +299,10 @@ func (c *Client) handshake() error {
 		return fmt.Errorf("failed to generate shared secret: %w", err)
 	}
 
-	c.secret = secret
-	c.id = id
+	c.session = &clientSession{
+		secret: secret,
+		id:     id,
+	}
 	return nil
 }
 
@@ -329,21 +348,21 @@ func (c *Client) Read(p []byte) (int, error) {
 		return 0, fmt.Errorf("failed to parse success response from '%s': %w", c.hostport, err)
 	}
 
-	gcm, err := newGCM(c.secret)
+	// The reply must answer the request we just sent; the server echoes that
+	// request's counter. Rejecting anything else prevents a replayed or
+	// misdelivered response from being accepted.
+	if response.Counter() != c.lastSentCounter {
+		return 0, fmt.Errorf("unexpected response counter from '%s': got %d, expected %d",
+			c.hostport, response.Counter(), c.lastSentCounter)
+	}
+
+	gcm, err := newGCM(c.session.secret)
 	if err != nil {
 		return 0, err
 	}
 
-	nonceSize := gcm.NonceSize()
-	encryptedMessage := response.Message()
-
-	if len(encryptedMessage) < nonceSize {
-		return 0, fmt.Errorf("failed to decrypt data from server: encrypted message is too short (got %d bytes)",
-			len(encryptedMessage))
-	}
-
-	nonce, ciphertext := encryptedMessage[:nonceSize], encryptedMessage[nonceSize:]
-	message, err := gcm.Open(nil, nonce, ciphertext, nil)
+	nonce := protocol.Nonce(protocol.DirectionServerToClient, response.Counter(), gcm.NonceSize())
+	message, err := gcm.Open(nil, nonce, response.Message(), nil)
 	if err != nil {
 		return 0, fmt.Errorf("failed to decrypt data from server: %w", err)
 	}
@@ -376,18 +395,22 @@ func (c *Client) Write(p []byte) (n int, err error) {
 		}
 	}
 
-	gcm, err := newGCM(c.secret)
+	gcm, err := newGCM(c.session.secret)
 	if err != nil {
 		return 0, err
 	}
 
-	nonce := make([]byte, gcm.NonceSize())
-	_, err = rand.Read(nonce)
-	if err != nil {
-		return 0, fmt.Errorf("failed to generate nonce: %w", err)
+	// Use a unique, increasing counter (shared across all connections that use
+	// this secret) to build the nonce. A zero counter is never emitted, so a
+	// wrap back to zero signals exhaustion.
+	counter := c.session.sendCounter.Add(1)
+	if counter == 0 {
+		return 0, fmt.Errorf("message counter exhausted for '%s'", c.hostport)
 	}
+	c.lastSentCounter = counter
 
-	return c.conn.Write(protocol.NewProcessRequest(c.id, gcm.Seal(nonce, nonce, p, nil),
+	nonce := protocol.Nonce(protocol.DirectionClientToServer, counter, gcm.NonceSize())
+	return c.conn.Write(protocol.NewProcessRequest(c.session.id, counter, gcm.Seal(nil, nonce, p, nil),
 		protocol.WithProcessRequestExpectReply(c.expectReply),
 	).Bytes())
 }

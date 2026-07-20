@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"io"
@@ -87,7 +86,7 @@ func (h HandlerV1) processHandler(requestCommon protocol.RequestCommon, conn net
 		return nil
 	}
 
-	secret, ok := h.secrets.Load(base64.StdEncoding.EncodeToString(idHash.Sum(nil)))
+	session, ok := h.secrets.Load(base64.StdEncoding.EncodeToString(idHash.Sum(nil)))
 	if !ok {
 		errResponse := protocol.NewErrorResponse(
 			protocol.ErrorCodeUnknownClient,
@@ -99,7 +98,20 @@ func (h HandlerV1) processHandler(requestCommon protocol.RequestCommon, conn net
 		return nil
 	}
 
-	aesKey, err := kdf.DeriveKey(secret, kdf.Info, kdf.AESKeySize)
+	// Reject replayed or too-old messages before doing any cryptographic work.
+	if !session.Replay.CheckAndUpdate(request.Counter()) {
+		h.logger.Printf("replay detected for counter %d", request.Counter())
+		errResponse := protocol.NewErrorResponse(
+			protocol.ErrorCodeReplayDetected,
+			"message counter was already seen or is too old",
+		).Bytes()
+		if !h.writeErrorResponse(conn, errResponse) {
+			return io.ErrShortWrite
+		}
+		return nil
+	}
+
+	aesKey, err := kdf.DeriveKey(session.Secret, kdf.Info, kdf.AESKeySize)
 	if err != nil {
 		h.logger.Printf("failed to derive encryption key: %v", err)
 		errResponse := protocol.NewErrorResponse(
@@ -138,21 +150,10 @@ func (h HandlerV1) processHandler(requestCommon protocol.RequestCommon, conn net
 		return nil
 	}
 
-	nonceSize := gcm.NonceSize()
-	encryptedMessage := request.Message()
-	if len(encryptedMessage) < nonceSize {
-		h.logger.Printf("encrypted message is too short: got %d bytes, need at least %d", len(encryptedMessage), nonceSize)
-		errResponse := protocol.NewErrorResponse(
-			protocol.ErrorCodeMalformedRequest,
-			"encrypted message is too short",
-		).Bytes()
-		if !h.writeErrorResponse(conn, errResponse) {
-			return io.ErrShortWrite
-		}
-		return nil
-	}
-	nonce, ciphertext := encryptedMessage[:nonceSize], encryptedMessage[nonceSize:]
-	message, err := gcm.Open(nil, nonce, ciphertext, nil)
+	// The nonce is derived deterministically from the message counter and the
+	// direction, so it is not carried on the wire; the message is the ciphertext.
+	nonce := protocol.Nonce(protocol.DirectionClientToServer, request.Counter(), gcm.NonceSize())
+	message, err := gcm.Open(nil, nonce, request.Message(), nil)
 	if err != nil {
 		h.logger.Printf("failed to decrypt message: %v", err)
 		errResponse := protocol.NewErrorResponse(
@@ -184,23 +185,15 @@ func (h HandlerV1) processHandler(requestCommon protocol.RequestCommon, conn net
 		return nil
 	}
 
-	nonce = make([]byte, gcm.NonceSize())
-	_, err = rand.Read(nonce)
-	if err != nil {
-		h.logger.Printf("failed to generate nonce: %v", err)
-		errResponse := protocol.NewErrorResponse(
-			protocol.ErrorCodeServerError,
-			"failed to generate nonce",
-		).Bytes()
-		if !h.writeErrorResponse(conn, errResponse) {
-			return io.ErrShortWrite
-		}
-		return nil
-	}
-
 	if request.ExpectReply() {
 		writerBuffer := writer.(*bytes.Buffer)
-		response := protocol.NewProcessResponse(gcm.Seal(nonce, nonce, writerBuffer.Bytes(), nil)).Bytes()
+		// Reuse the request counter (with the opposite direction) for the reply
+		// nonce. It is unique per secret, so the derived nonce is never reused.
+		responseNonce := protocol.Nonce(protocol.DirectionServerToClient, request.Counter(), gcm.NonceSize())
+		response := protocol.NewProcessResponse(
+			request.Counter(),
+			gcm.Seal(nil, responseNonce, writerBuffer.Bytes(), nil),
+		).Bytes()
 		if !h.writeResponse(conn, requestCommon.Action(), response) {
 			return io.ErrShortWrite
 		}
