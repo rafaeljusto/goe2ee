@@ -92,6 +92,9 @@ func ParseProcessRequest(requestCommon RequestCommon, r io.Reader) (ProcessReque
 		}
 		return request, fmt.Errorf("failed to read size: %w", err)
 	}
+	if request.messageSize > MaxMessageSize {
+		return request, fmt.Errorf("message size %d exceeds maximum of %d bytes", request.messageSize, MaxMessageSize)
+	}
 
 	request.message = make([]byte, request.messageSize)
 	if err := binary.Read(r, binary.LittleEndian, &request.message); err != nil {
@@ -165,6 +168,9 @@ func ParseProcessResponse(r io.Reader, responseCommon ResponseCommon) (ProcessRe
 			return response, err
 		}
 		return response, fmt.Errorf("failed to read size: %w", err)
+	}
+	if response.messageSize > MaxMessageSize {
+		return response, fmt.Errorf("message size %d exceeds maximum of %d bytes", response.messageSize, MaxMessageSize)
 	}
 
 	response.message = make([]byte, response.messageSize)

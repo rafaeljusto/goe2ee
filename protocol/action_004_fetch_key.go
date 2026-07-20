@@ -18,8 +18,13 @@ const (
 
 // String returns the string representation of the key algorithm.
 func (k KeyAlgorithm) String() string {
-	if k == KeyAlgorithmRSA {
+	switch k {
+	case KeyAlgorithmRSA:
 		return "RSA"
+	case KeyAlgorithmECDSA:
+		return "ECDSA"
+	case KeyAlgorithmED25519:
+		return "ED25519"
 	}
 	return ""
 }
@@ -80,6 +85,9 @@ func ParseFetchKeyResponse(r io.Reader, responseCommon ResponseCommon) (FetchKey
 			return response, err
 		}
 		return response, fmt.Errorf("failed to read size: %w", err)
+	}
+	if response.publicKeySize > MaxKeySize {
+		return response, fmt.Errorf("public key size %d exceeds maximum of %d bytes", response.publicKeySize, MaxKeySize)
 	}
 
 	response.publicKey = make([]byte, response.publicKeySize)

@@ -44,10 +44,12 @@ func TestClientFetcherDNSKEY_Fetch(t *testing.T) {
 				return
 			}
 			response := struct {
+				AD      bool `json:"AD"`
 				Answers []struct {
 					Data string `json:"data"`
 				} `json:"Answer"`
 			}{
+				AD: true,
 				Answers: []struct {
 					Data string `json:"data"`
 				}{{

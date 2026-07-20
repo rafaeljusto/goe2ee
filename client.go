@@ -13,10 +13,30 @@ import (
 	"time"
 
 	internalclient "github.com/rafaeljusto/goe2ee/internal/client"
+	"github.com/rafaeljusto/goe2ee/internal/kdf"
 	internalnet "github.com/rafaeljusto/goe2ee/internal/net"
 	"github.com/rafaeljusto/goe2ee/key"
 	"github.com/rafaeljusto/goe2ee/protocol"
 )
+
+// newGCM derives the symmetric key from the shared secret and returns an
+// AES-256-GCM AEAD. The raw ECDH secret is passed through HKDF first as it is
+// not safe to use directly as a cipher key.
+func newGCM(secret []byte) (cipher.AEAD, error) {
+	aesKey, err := kdf.DeriveKey(secret, kdf.Info, kdf.AESKeySize)
+	if err != nil {
+		return nil, fmt.Errorf("failed to derive encryption key: %w", err)
+	}
+	block, err := aes.NewCipher(aesKey)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create AES cipher: %w", err)
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create GCM cipher: %w", err)
+	}
+	return gcm, nil
+}
 
 // make sure the client implements the net.Conn interface.
 var _ net.Conn = (*Client)(nil)
@@ -309,14 +329,9 @@ func (c *Client) Read(p []byte) (int, error) {
 		return 0, fmt.Errorf("failed to parse success response from '%s': %w", c.hostport, err)
 	}
 
-	aes, err := aes.NewCipher(c.secret)
+	gcm, err := newGCM(c.secret)
 	if err != nil {
-		return 0, fmt.Errorf("failed to create AES cipher: %w", err)
-	}
-
-	gcm, err := cipher.NewGCM(aes)
-	if err != nil {
-		return 0, fmt.Errorf("failed to create GCM cipher: %w", err)
+		return 0, err
 	}
 
 	nonceSize := gcm.NonceSize()
@@ -361,14 +376,9 @@ func (c *Client) Write(p []byte) (n int, err error) {
 		}
 	}
 
-	aes, err := aes.NewCipher(c.secret)
+	gcm, err := newGCM(c.secret)
 	if err != nil {
-		return 0, fmt.Errorf("failed to create AES cipher: %w", err)
-	}
-
-	gcm, err := cipher.NewGCM(aes)
-	if err != nil {
-		return 0, fmt.Errorf("failed to create GCM cipher: %w", err)
+		return 0, err
 	}
 
 	nonce := make([]byte, gcm.NonceSize())

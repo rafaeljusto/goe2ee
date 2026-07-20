@@ -146,12 +146,12 @@ func TestPublicKey_VerifySignature(t *testing.T) {
 			if _, err := hash.Write([]byte("hello world")); err != nil {
 				t.Fatalf("failed to hash message: %v", err)
 			}
+			// Sign the way ServerManagerInMemory.Sign does: pure Ed25519 over the
+			// already-hashed message. Using Ed25519ph here (Sign with a Hash
+			// option) would produce a signature that the real signing path never
+			// generates.
 			ed25519PrivateKey := privateKey.(ed25519.PrivateKey)
-			signature, err := ed25519PrivateKey.Sign(rand.Reader, hash.Sum(nil), crypto.SHA512)
-			if err != nil {
-				t.Fatalf("failed to sign message: %v", err)
-			}
-			return signature
+			return ed25519.Sign(ed25519PrivateKey, hash.Sum(nil))
 		},
 		want:    true,
 		wantErr: false,

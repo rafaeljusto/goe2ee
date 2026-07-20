@@ -10,6 +10,7 @@ import (
 	"io"
 	"net"
 
+	"github.com/rafaeljusto/goe2ee/internal/kdf"
 	"github.com/rafaeljusto/goe2ee/protocol"
 )
 
@@ -98,7 +99,20 @@ func (h HandlerV1) processHandler(requestCommon protocol.RequestCommon, conn net
 		return nil
 	}
 
-	aes, err := aes.NewCipher(secret)
+	aesKey, err := kdf.DeriveKey(secret, kdf.Info, kdf.AESKeySize)
+	if err != nil {
+		h.logger.Printf("failed to derive encryption key: %v", err)
+		errResponse := protocol.NewErrorResponse(
+			protocol.ErrorCodeServerError,
+			"failed to derive encryption key",
+		).Bytes()
+		if !h.writeErrorResponse(conn, errResponse) {
+			return io.ErrShortWrite
+		}
+		return nil
+	}
+
+	aes, err := aes.NewCipher(aesKey)
 	if err != nil {
 		h.logger.Printf("failed to create AES cipher: %v", err)
 		errResponse := protocol.NewErrorResponse(
@@ -126,6 +140,17 @@ func (h HandlerV1) processHandler(requestCommon protocol.RequestCommon, conn net
 
 	nonceSize := gcm.NonceSize()
 	encryptedMessage := request.Message()
+	if len(encryptedMessage) < nonceSize {
+		h.logger.Printf("encrypted message is too short: got %d bytes, need at least %d", len(encryptedMessage), nonceSize)
+		errResponse := protocol.NewErrorResponse(
+			protocol.ErrorCodeMalformedRequest,
+			"encrypted message is too short",
+		).Bytes()
+		if !h.writeErrorResponse(conn, errResponse) {
+			return io.ErrShortWrite
+		}
+		return nil
+	}
 	nonce, ciphertext := encryptedMessage[:nonceSize], encryptedMessage[nonceSize:]
 	message, err := gcm.Open(nil, nonce, ciphertext, nil)
 	if err != nil {

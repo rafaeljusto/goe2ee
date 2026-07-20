@@ -151,11 +151,11 @@ func (c ClientFetcherTLS) Fetch(host string) (publicKey PublicKey, err error) {
 	}
 	cert := conn.ConnectionState().PeerCertificates[0]
 	if cert.NotAfter.Before(time.Now()) {
-		err = errors.New("certificate is not valid yet")
+		err = errors.New("certificate has expired")
 		return
 	}
 	if cert.NotBefore.After(time.Now()) {
-		err = errors.New("certificate has expired")
+		err = errors.New("certificate is not valid yet")
 		return
 	}
 	publicKey.PublicKey = cert.PublicKey
@@ -311,6 +311,15 @@ func ClientFetcherCacheWithTTL(ttl time.Duration) func(*ClientFetcherCacheOption
 	}
 }
 
+// clientFetcherCacheItem is the value stored in the ClientFetcherCache. It must
+// be a single shared type: declaring an equivalent struct locally in each method
+// would create distinct types (types from different scopes are never identical),
+// causing the type assertion in the garbage collector to panic.
+type clientFetcherCacheItem struct {
+	publicKey PublicKey
+	storedAt  time.Time
+}
+
 // ClientFetcherCache is a generic interface to allow fetching the server's
 // public key from different sources. It will cache the public key for a given
 // TTL.
@@ -322,11 +331,6 @@ type ClientFetcherCache struct {
 
 // NewClientFetcherCache creates a new ClientFetcherCache.
 func NewClientFetcherCache(fetcher ClientFetcher, optFuncs ...func(*ClientFetcherCacheOptions)) *ClientFetcherCache {
-	type cacheItem struct {
-		_        PublicKey
-		storedAt time.Time
-	}
-
 	options := ClientFetcherCacheOptions{
 		ttl: 5 * time.Minute,
 	}
@@ -345,7 +349,7 @@ func NewClientFetcherCache(fetcher ClientFetcher, optFuncs ...func(*ClientFetche
 
 			for range timeTicker.C {
 				c.cache.Range(func(key, value interface{}) bool {
-					if item := value.(cacheItem); time.Since(item.storedAt) > c.ttl {
+					if item := value.(clientFetcherCacheItem); time.Since(item.storedAt) > c.ttl {
 						c.cache.Delete(key)
 					}
 					return true
@@ -357,16 +361,15 @@ func NewClientFetcherCache(fetcher ClientFetcher, optFuncs ...func(*ClientFetche
 }
 
 // Fetch retrieves the server's public key from the cache or from the underlying
-// fetcher. If the public key is not in the cache, it will be fetched and stored
-// in the cache.
+// fetcher. If the public key is not in the cache (or the cached entry has
+// expired), it will be fetched and stored in the cache.
 func (c *ClientFetcherCache) Fetch(host string) (PublicKey, error) {
-	type cacheItem struct {
-		publicKey PublicKey
-		storedAt  time.Time
-	}
-
 	if cached, ok := c.cache.Load(host); ok {
-		return cached.(cacheItem).publicKey, nil
+		item := cached.(clientFetcherCacheItem)
+		if c.ttl <= 0 || time.Since(item.storedAt) <= c.ttl {
+			return item.publicKey, nil
+		}
+		c.cache.Delete(host)
 	}
 
 	publicKey, err := c.fetcher.Fetch(host)
@@ -374,7 +377,7 @@ func (c *ClientFetcherCache) Fetch(host string) (PublicKey, error) {
 		return PublicKey{}, err
 	}
 
-	c.cache.Store(host, cacheItem{
+	c.cache.Store(host, clientFetcherCacheItem{
 		publicKey: publicKey,
 		storedAt:  time.Now(),
 	})

@@ -108,6 +108,9 @@ func ParseSetupRequest(requestCommon RequestCommon, r io.Reader) (SetupRequest, 
 		}
 		return request, fmt.Errorf("failed to read public key size: %w", err)
 	}
+	if publicKeySize > MaxKeySize {
+		return request, fmt.Errorf("public key size %d exceeds maximum of %d bytes", publicKeySize, MaxKeySize)
+	}
 
 	publicKeyBytes := make([]byte, publicKeySize)
 	if err := binary.Read(r, binary.LittleEndian, &publicKeyBytes); err != nil {
@@ -188,6 +191,9 @@ func ParseSetupResponse(responseCommon ResponseCommon, r io.Reader) (SetupRespon
 		}
 		return response, fmt.Errorf("failed to read public key size: %w", err)
 	}
+	if publicKeySize > MaxKeySize {
+		return response, fmt.Errorf("public key size %d exceeds maximum of %d bytes", publicKeySize, MaxKeySize)
+	}
 
 	publicKeyBytes := make([]byte, publicKeySize)
 	if err := binary.Read(r, binary.LittleEndian, &publicKeyBytes); err != nil {
@@ -220,6 +226,9 @@ func ParseSetupResponse(responseCommon ResponseCommon, r io.Reader) (SetupRespon
 			return response, err
 		}
 		return response, fmt.Errorf("failed to read signature size: %w", err)
+	}
+	if signatureSize > MaxSignatureSize {
+		return response, fmt.Errorf("signature size %d exceeds maximum of %d bytes", signatureSize, MaxSignatureSize)
 	}
 
 	response.signature = make([]byte, signatureSize)

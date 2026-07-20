@@ -92,6 +92,14 @@ func (d *DNSOverHTTPS) RetrievePublicKey(domain string) (crypto.PublicKey, error
 			request.URL.String())
 	}
 
+	// The DNSKEY is only trustworthy if the resolver validated the DNSSEC chain
+	// of trust. Providers signal this via the AD (Authenticated Data) flag; if it
+	// is not set the answer could have been forged, so we refuse to use it.
+	if !jsonAPI.AuthenticatedData {
+		return nil, fmt.Errorf("DNS over HTTPS request '%s' returned a response "+
+			"that was not DNSSEC-validated (AD flag not set)", request.URL.String())
+	}
+
 	var publicKey crypto.PublicKey
 	for _, answer := range jsonAPI.Answers {
 		publicKey, err = dnssec.ParseDNSKEY(answer.Data)
@@ -112,7 +120,10 @@ func (d *DNSOverHTTPS) RetrievePublicKey(domain string) (crypto.PublicKey, error
 }
 
 type dnsOverHTTPSJSONAPI struct {
-	Answers []struct {
+	// AuthenticatedData reports whether the resolver validated the DNSSEC chain
+	// of trust for the response (the DNS "AD" flag).
+	AuthenticatedData bool `json:"AD"`
+	Answers           []struct {
 		Data string `json:"data"`
 	} `json:"Answer"`
 }

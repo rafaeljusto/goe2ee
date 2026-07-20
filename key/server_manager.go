@@ -77,7 +77,9 @@ func ServerManagerGenerateOnTheFly(algorithm protocol.KeyAlgorithm) (*ServerMana
 	case protocol.KeyAlgorithmECDSA:
 		privateKey, err = ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
 	case protocol.KeyAlgorithmED25519:
-		privateKey, _, err = ed25519.GenerateKey(rand.Reader)
+		// ed25519.GenerateKey returns (PublicKey, PrivateKey, error); the private
+		// key is the second value.
+		_, privateKey, err = ed25519.GenerateKey(rand.Reader)
 	default:
 		return nil, fmt.Errorf("unsupported algorithm '%s'", algorithm)
 	}
