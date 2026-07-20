@@ -77,11 +77,15 @@ if err != nil {
 }
 ```
 
-For the client side, the fastest approach would be using all the default
-configurations, which includes validating the server's public key using the
-DNSSEC chain of trust:
+For the client side, the quickest way to get a working connection is to fetch
+the server's public key directly from the server over the protocol itself. This
+needs no external infrastructure, so it's ideal for local development and trying
+the library out:
 ```go
-client, err := goe2ee.DialTCP("goe2ee-server.example.com:60323")
+hostport := "localhost:60323"
+client, err := goe2ee.DialTCP(hostport,
+  goe2ee.ClientWithKeyFetcher(key.NewClientFetcherProtocol("tcp", hostport)),
+)
 if err != nil {
   log.Printf("failed to connect to server: %v", err)
   return
@@ -102,5 +106,29 @@ if err != nil {
   return
 }
 ```
+
+> [!WARNING]
+> For local development and testing only. Fetching the key over the protocol
+> trusts whatever key the server (or a man-in-the-middle) hands back on first
+> contact, so it provides no protection against an impersonated server. Do not
+> use `ClientFetcherProtocol` in production.
+
+For production you should validate the server's public key against a trusted
+source. The default configuration does exactly that, using the `DNSKEY` resource
+record of the target domain validated through the DNSSEC chain of trust (over
+DNS-over-HTTPS). Once the server has published its key as a DNSSEC-signed
+`DNSKEY` record, the client needs no key-fetcher configuration at all:
+```go
+client, err := goe2ee.DialTCP("goe2ee-server.example.com:60323")
+if err != nil {
+  log.Printf("failed to connect to server: %v", err)
+  return
+}
+```
+
+Alternatively you can validate the key against an x509 certificate
+(`key.NewClientFetcherTLS()`) or provide it manually from a PEM file
+(`key.ParseClientFetcherPEM(...)`). See the [features](#️-features) section for
+the full list of strategies.
 
 You can find more complex examples [here](examples).
