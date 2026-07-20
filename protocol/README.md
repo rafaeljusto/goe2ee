@@ -1,7 +1,8 @@
 # Protocol
 
 > This document is an implementation-oriented overview. A formal specification
-> is maintained as an IETF Internet-Draft in
+> is maintained as an IETF Internet-Draft, published as a
+> [rendered web page](https://rafaeljusto.github.io/goe2ee/) with the source in
 > [`docs/draft-justo-goe2ee-latest.md`](../docs/draft-justo-goe2ee-latest.md).
 
 goe2ee protocol aims to give a similar security level to TLS 1.3, using

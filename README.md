@@ -43,10 +43,12 @@ Other benefits of this protocol:
 
 Details about the protocol can be found
 [here](https://github.com/rafaeljusto/goe2ee/blob/main/protocol/README.md). A
-formal specification is also written up as an IETF Internet-Draft under
+formal specification is also written up as an IETF Internet-Draft, published as
+a [rendered web page](https://rafaeljusto.github.io/goe2ee/) with the source
+under
 [`docs/`](https://github.com/rafaeljusto/goe2ee/blob/main/docs/draft-justo-goe2ee-latest.md)
-(rendered [text](https://github.com/rafaeljusto/goe2ee/blob/main/docs/draft-justo-goe2ee-latest.txt)
-and [HTML](https://github.com/rafaeljusto/goe2ee/blob/main/docs/draft-justo-goe2ee-latest.html)).
+(also rendered as
+[text](https://github.com/rafaeljusto/goe2ee/blob/main/docs/draft-justo-goe2ee-latest.txt)).
 
 ## ⚡️ Quick start
 
