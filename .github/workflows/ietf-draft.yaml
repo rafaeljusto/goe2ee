@@ -50,7 +50,7 @@ jobs:
         run: make -C docs compile
 
       - name: Upload rendered draft
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: draft
           path: |
@@ -66,7 +66,7 @@ jobs:
       # sign-commits makes the commit verified, satisfying branch protection.
       - name: Open pull request with regenerated outputs
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
         with:
           add-paths: |
             docs/draft-justo-goe2ee-latest.xml
