@@ -58,6 +58,26 @@ jobs:
             docs/draft-justo-goe2ee-latest.html
           if-no-files-found: error
 
+      # Publish the freshly rendered draft to GitHub Pages. Only on push to
+      # main: stage the outputs into a site directory (the HTML doubles as
+      # index.html so the site root serves the draft) and hand it to the deploy
+      # job below as a Pages artifact. This deploys the just-built HTML, not the
+      # committed copy, so Pages never lags behind the source .md.
+      - name: Stage site for GitHub Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p _site
+          cp docs/draft-justo-goe2ee-latest.html _site/index.html
+          cp docs/draft-justo-goe2ee-latest.html _site/
+          cp docs/draft-justo-goe2ee-latest.txt _site/
+          cp docs/draft-justo-goe2ee-latest.xml _site/
+
+      - name: Upload GitHub Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
       # main is a protected branch (PR + verified signatures required), so the
       # regenerated outputs cannot be pushed to it directly. Instead open (or
       # update) a pull request from a fixed branch. This only runs on push to
@@ -80,3 +100,23 @@ jobs:
           body: |
             Automated regeneration of the rendered Internet-Draft
             (`.xml`/`.txt`/`.html`) from `draft-justo-goe2ee-latest.md`.
+
+  # Deploy the staged site (uploaded by the build job) to GitHub Pages. Runs
+  # only on push to main; on pull requests the build job skips the staging and
+  # upload steps and this job is gated off entirely. Requires Settings -> Pages
+  # -> Source: "GitHub Actions" to be enabled once for the repository.
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
