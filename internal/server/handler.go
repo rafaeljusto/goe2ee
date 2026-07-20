@@ -7,9 +7,9 @@ import (
 	"net"
 	"os"
 
-	"github.com/rafaeljusto/goe2ee/key"
-	"github.com/rafaeljusto/goe2ee/protocol"
-	"github.com/rafaeljusto/goe2ee/secret"
+	"github.com/rafaeljusto/goe2ee/v2/key"
+	"github.com/rafaeljusto/goe2ee/v2/protocol"
+	"github.com/rafaeljusto/goe2ee/v2/secret"
 )
 
 // Handler is the interface that wraps the Handle method.

@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
-	internaldoh "github.com/rafaeljusto/goe2ee/internal/dns/doh"
-	internalnet "github.com/rafaeljusto/goe2ee/internal/net"
-	"github.com/rafaeljusto/goe2ee/protocol"
+	internaldoh "github.com/rafaeljusto/goe2ee/v2/internal/dns/doh"
+	internalnet "github.com/rafaeljusto/goe2ee/v2/internal/net"
+	"github.com/rafaeljusto/goe2ee/v2/protocol"
 )
 
 const (

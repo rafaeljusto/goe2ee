@@ -3,7 +3,7 @@ package goe2ee
 import (
 	"sync"
 
-	"github.com/rafaeljusto/goe2ee/protocol"
+	"github.com/rafaeljusto/goe2ee/v2/protocol"
 )
 
 // ClientPool is a pool of clients. It is useful when you need to connect to the

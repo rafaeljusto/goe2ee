@@ -9,11 +9,11 @@ import (
 	"sync"
 	"time"
 
-	internalnet "github.com/rafaeljusto/goe2ee/internal/net"
-	internalserver "github.com/rafaeljusto/goe2ee/internal/server"
-	"github.com/rafaeljusto/goe2ee/key"
-	"github.com/rafaeljusto/goe2ee/protocol"
-	"github.com/rafaeljusto/goe2ee/secret"
+	internalnet "github.com/rafaeljusto/goe2ee/v2/internal/net"
+	internalserver "github.com/rafaeljusto/goe2ee/v2/internal/server"
+	"github.com/rafaeljusto/goe2ee/v2/key"
+	"github.com/rafaeljusto/goe2ee/v2/protocol"
+	"github.com/rafaeljusto/goe2ee/v2/secret"
 )
 
 // ServerHandler is the interface that wraps the Handle method.

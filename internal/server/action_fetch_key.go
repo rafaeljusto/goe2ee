@@ -4,7 +4,7 @@ import (
 	"crypto/x509"
 	"io"
 
-	"github.com/rafaeljusto/goe2ee/protocol"
+	"github.com/rafaeljusto/goe2ee/v2/protocol"
 )
 
 func (h HandlerV1) fetchKeyHandler(requestCommon protocol.RequestCommon, conn io.ReadWriter) error {

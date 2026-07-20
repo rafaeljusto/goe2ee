@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/rafaeljusto/goe2ee/internal/dns/dnssec"
+	"github.com/rafaeljusto/goe2ee/v2/internal/dns/dnssec"
 )
 
 // DNSOverHTTPSOptions are the options used to configure the DNS-over-HTTPS. You

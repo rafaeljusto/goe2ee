@@ -13,7 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/rafaeljusto/goe2ee/examples/chat"
+	"github.com/rafaeljusto/goe2ee/v2/examples/chat"
 )
 
 var usersStore sync.Map

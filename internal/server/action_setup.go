@@ -9,8 +9,8 @@ import (
 	"io"
 	"net"
 
-	"github.com/rafaeljusto/goe2ee/protocol"
-	"github.com/rafaeljusto/goe2ee/secret"
+	"github.com/rafaeljusto/goe2ee/v2/protocol"
+	"github.com/rafaeljusto/goe2ee/v2/secret"
 )
 
 func (h HandlerV1) setupHandler(requestCommon protocol.RequestCommon, conn net.Conn) error {

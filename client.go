@@ -13,11 +13,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	internalclient "github.com/rafaeljusto/goe2ee/internal/client"
-	"github.com/rafaeljusto/goe2ee/internal/kdf"
-	internalnet "github.com/rafaeljusto/goe2ee/internal/net"
-	"github.com/rafaeljusto/goe2ee/key"
-	"github.com/rafaeljusto/goe2ee/protocol"
+	internalclient "github.com/rafaeljusto/goe2ee/v2/internal/client"
+	"github.com/rafaeljusto/goe2ee/v2/internal/kdf"
+	internalnet "github.com/rafaeljusto/goe2ee/v2/internal/net"
+	"github.com/rafaeljusto/goe2ee/v2/key"
+	"github.com/rafaeljusto/goe2ee/v2/protocol"
 )
 
 // newGCM derives the symmetric key from the shared secret and returns an
