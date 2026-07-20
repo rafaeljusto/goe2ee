@@ -11,8 +11,9 @@ on:
       - "docs/**"
       - ".github/workflows/ietf-draft.yaml"
 
-# Read is enough for pull requests; the push job needs write to commit the
-# regenerated outputs back to the repository.
+# Read is enough for pull requests; on push to main the job opens a pull request
+# with the regenerated outputs (main is protected and cannot be pushed to
+# directly), which needs contents and pull-requests write.
 permissions:
   contents: read
 
@@ -25,6 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@v7
@@ -56,17 +58,25 @@ jobs:
             docs/draft-justo-goe2ee-latest.html
           if-no-files-found: error
 
-      - name: Commit regenerated outputs
+      # main is a protected branch (PR + verified signatures required), so the
+      # regenerated outputs cannot be pushed to it directly. Instead open (or
+      # update) a pull request from a fixed branch. This only runs on push to
+      # main; the pull request it opens fires a pull_request event that runs the
+      # build/upload steps above but skips this one, so it never recurses.
+      # sign-commits makes the commit verified, satisfying branch protection.
+      - name: Open pull request with regenerated outputs
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/draft-justo-goe2ee-latest.xml \
-                  docs/draft-justo-goe2ee-latest.txt \
-                  docs/draft-justo-goe2ee-latest.html
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-          else
-            git commit -m "docs: regenerate rendered draft [skip ci]"
-            git push
-          fi
+        uses: peter-evans/create-pull-request@v7
+        with:
+          add-paths: |
+            docs/draft-justo-goe2ee-latest.xml
+            docs/draft-justo-goe2ee-latest.txt
+            docs/draft-justo-goe2ee-latest.html
+          branch: chore/regenerate-draft
+          delete-branch: true
+          sign-commits: true
+          commit-message: "docs: regenerate rendered draft"
+          title: "docs: regenerate rendered draft"
+          body: |
+            Automated regeneration of the rendered Internet-Draft
+            (`.xml`/`.txt`/`.html`) from `draft-justo-goe2ee-latest.md`.
