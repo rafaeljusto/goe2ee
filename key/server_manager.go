@@ -15,7 +15,7 @@ import (
 	"hash"
 	"io"
 
-	"github.com/rafaeljusto/goe2ee/protocol"
+	"github.com/rafaeljusto/goe2ee/v2/protocol"
 )
 
 // ServerManager is a generic interface to manage the server's key-pair.

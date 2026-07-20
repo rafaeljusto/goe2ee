@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rafaeljusto/goe2ee"
-	"github.com/rafaeljusto/goe2ee/key"
-	"github.com/rafaeljusto/goe2ee/protocol"
+	"github.com/rafaeljusto/goe2ee/v2"
+	"github.com/rafaeljusto/goe2ee/v2/key"
+	"github.com/rafaeljusto/goe2ee/v2/protocol"
 )
 
 func TestDialTCP(t *testing.T) {

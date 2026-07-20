@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rafaeljusto/goe2ee/secret"
+	"github.com/rafaeljusto/goe2ee/v2/secret"
 )
 
 func TestInMemoryManager(t *testing.T) {

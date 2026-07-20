@@ -20,9 +20,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rafaeljusto/goe2ee"
-	internaldnssec "github.com/rafaeljusto/goe2ee/internal/dns/dnssec"
-	"github.com/rafaeljusto/goe2ee/key"
+	"github.com/rafaeljusto/goe2ee/v2"
+	internaldnssec "github.com/rafaeljusto/goe2ee/v2/internal/dns/dnssec"
+	"github.com/rafaeljusto/goe2ee/v2/key"
 )
 
 func TestClientFetcherDNSKEY_Fetch(t *testing.T) {

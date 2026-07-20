@@ -3,8 +3,8 @@ package key_test
 import (
 	"log"
 
-	"github.com/rafaeljusto/goe2ee"
-	"github.com/rafaeljusto/goe2ee/key"
+	"github.com/rafaeljusto/goe2ee/v2"
+	"github.com/rafaeljusto/goe2ee/v2/key"
 )
 
 func ExampleClientFetcherDNSKEY_Fetch() {

@@ -9,8 +9,8 @@ import (
 	"io"
 	"net"
 
-	"github.com/rafaeljusto/goe2ee/internal/kdf"
-	"github.com/rafaeljusto/goe2ee/protocol"
+	"github.com/rafaeljusto/goe2ee/v2/internal/kdf"
+	"github.com/rafaeljusto/goe2ee/v2/protocol"
 )
 
 func (h HandlerV1) processHandler(requestCommon protocol.RequestCommon, conn net.Conn) error {

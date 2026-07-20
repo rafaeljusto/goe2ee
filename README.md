@@ -1,6 +1,6 @@
 # goe2ee
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/rafaeljusto/goe2ee.svg)](https://pkg.go.dev/github.com/rafaeljusto/goe2ee)
+[![Go Reference](https://pkg.go.dev/badge/github.com/rafaeljusto/goe2ee/v2.svg)](https://pkg.go.dev/github.com/rafaeljusto/goe2ee/v2)
 ![Test](https://github.com/rafaeljusto/goe2ee/actions/workflows/test.yml/badge.svg)
 
 End-to-end encryption (E2EE) library in Go language. Securely communicate with
@@ -48,7 +48,7 @@ Details about the protocol can be found
 
 You can use `go get` to add this library to your project:
 ```
-go get github.com/rafaeljusto/goe2ee
+go get github.com/rafaeljusto/goe2ee/v2
 ```
 
 When building a server the simplest setup would be the below. This example sends

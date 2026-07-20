@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/rafaeljusto/goe2ee"
-	"github.com/rafaeljusto/goe2ee/internal/kdf"
-	"github.com/rafaeljusto/goe2ee/key"
-	"github.com/rafaeljusto/goe2ee/protocol"
+	"github.com/rafaeljusto/goe2ee/v2"
+	"github.com/rafaeljusto/goe2ee/v2/internal/kdf"
+	"github.com/rafaeljusto/goe2ee/v2/key"
+	"github.com/rafaeljusto/goe2ee/v2/protocol"
 )
 
 // TestProcessReplayRejected performs the handshake manually so it can resend a

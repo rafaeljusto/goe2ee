@@ -10,7 +10,7 @@ import (
 	"crypto/rsa"
 	"testing"
 
-	"github.com/rafaeljusto/goe2ee/key"
+	"github.com/rafaeljusto/goe2ee/v2/key"
 )
 
 func TestPublicKey_VerifySignature(t *testing.T) {
