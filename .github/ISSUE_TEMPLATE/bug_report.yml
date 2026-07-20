@@ -41,7 +41,7 @@ body:
       label: What version of the Go compiler are you using?
       multiple: false
       options:
-        - 1.20
+        - 1.24
     validations:
       required: true
   - type: textarea
