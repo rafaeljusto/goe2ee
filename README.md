@@ -42,7 +42,11 @@ Other benefits of this protocol:
   and forget, saving a network overhead.
 
 Details about the protocol can be found
-[here](https://github.com/rafaeljusto/goe2ee/blob/main/protocol/README.md).
+[here](https://github.com/rafaeljusto/goe2ee/blob/main/protocol/README.md). A
+formal specification is also written up as an IETF Internet-Draft under
+[`docs/`](https://github.com/rafaeljusto/goe2ee/blob/main/docs/draft-justo-goe2ee-latest.md)
+(rendered [text](https://github.com/rafaeljusto/goe2ee/blob/main/docs/draft-justo-goe2ee-latest.txt)
+and [HTML](https://github.com/rafaeljusto/goe2ee/blob/main/docs/draft-justo-goe2ee-latest.html)).
 
 ## ⚡️ Quick start
 
