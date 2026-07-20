@@ -1,0 +1,72 @@
+name: IETF Draft
+on:
+  pull_request:
+    paths:
+      - "docs/**"
+      - ".github/workflows/ietf-draft.yaml"
+  push:
+    branches:
+      - main
+    paths:
+      - "docs/**"
+      - ".github/workflows/ietf-draft.yaml"
+
+# Read is enough for pull requests; the push job needs write to commit the
+# regenerated outputs back to the repository.
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.x"
+
+      - name: Install tooling
+        run: |
+          gem install kramdown-rfc
+          pip3 install xml2rfc
+
+      - name: Build draft
+        run: make -C docs compile
+
+      - name: Upload rendered draft
+        uses: actions/upload-artifact@v4
+        with:
+          name: draft
+          path: |
+            docs/draft-justo-goe2ee-latest.txt
+            docs/draft-justo-goe2ee-latest.html
+          if-no-files-found: error
+
+      - name: Commit regenerated outputs
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/draft-justo-goe2ee-latest.xml \
+                  docs/draft-justo-goe2ee-latest.txt \
+                  docs/draft-justo-goe2ee-latest.html
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "docs: regenerate rendered draft [skip ci]"
+            git push
+          fi
