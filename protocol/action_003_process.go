@@ -29,13 +29,17 @@ type ProcessRequest struct {
 	expectReply   bool
 	reservedFlags uint8
 	id            [16]byte // follows RFC 4122
+	counter       uint64   // per-secret monotonic counter, used as the AEAD nonce
 	messageSize   uint64
 	message       []byte
 }
 
-// NewProcessRequest creates a new ProcessRequest.
+// NewProcessRequest creates a new ProcessRequest. The counter must be unique
+// and increasing for every message encrypted under the same shared secret; it
+// is used to build the AEAD nonce and to reject replays.
 func NewProcessRequest(
 	id [16]byte,
+	counter uint64,
 	message []byte,
 	optFuncs ...func(*ProcessRequestOptions),
 ) ProcessRequest {
@@ -52,6 +56,7 @@ func NewProcessRequest(
 		},
 		expectReply: options.expectReply,
 		id:          id,
+		counter:     counter,
 		messageSize: uint64(len(message)),
 		message:     message,
 	}
@@ -86,6 +91,13 @@ func ParseProcessRequest(requestCommon RequestCommon, r io.Reader) (ProcessReque
 		return request, fmt.Errorf("failed to read id: %w", err)
 	}
 
+	if err := binary.Read(r, binary.BigEndian, &request.counter); err != nil {
+		if err == io.ErrUnexpectedEOF {
+			return request, err
+		}
+		return request, fmt.Errorf("failed to read counter: %w", err)
+	}
+
 	if err := binary.Read(r, binary.BigEndian, &request.messageSize); err != nil {
 		if err == io.ErrUnexpectedEOF {
 			return request, err
@@ -116,6 +128,7 @@ func (g ProcessRequest) Bytes() []byte {
 	buffer := g.RequestCommon.Bytes()
 	buffer = append(buffer, flags)
 	buffer = append(buffer, g.id[:]...)
+	buffer = binary.BigEndian.AppendUint64(buffer, g.counter)
 	buffer = binary.BigEndian.AppendUint64(buffer, g.messageSize)
 	buffer = append(buffer, g.message...)
 	return buffer
@@ -131,6 +144,12 @@ func (g ProcessRequest) ID() [16]byte {
 	return g.id
 }
 
+// Counter returns the message counter used to derive the AEAD nonce and to
+// reject replays.
+func (g ProcessRequest) Counter() uint64 {
+	return g.counter
+}
+
 // Message returns the encrypted message.
 func (g ProcessRequest) Message() []byte {
 	return g.message
@@ -141,16 +160,19 @@ func (g ProcessRequest) Message() []byte {
 type ProcessResponse struct {
 	ResponseCommon
 
+	counter     uint64
 	messageSize uint64
 	message     []byte
 }
 
-// NewProcessResponse creates a new NewProcessResponse.
-func NewProcessResponse(message []byte) ProcessResponse {
+// NewProcessResponse creates a new NewProcessResponse. The counter is echoed
+// from the request it answers and is used to build the AEAD nonce.
+func NewProcessResponse(counter uint64, message []byte) ProcessResponse {
 	return ProcessResponse{
 		ResponseCommon: ResponseCommon{
 			success: true,
 		},
+		counter:     counter,
 		messageSize: uint64(len(message)),
 		message:     message,
 	}
@@ -161,6 +183,13 @@ func NewProcessResponse(message []byte) ProcessResponse {
 func ParseProcessResponse(r io.Reader, responseCommon ResponseCommon) (ProcessResponse, error) {
 	response := ProcessResponse{
 		ResponseCommon: responseCommon,
+	}
+
+	if err := binary.Read(r, binary.BigEndian, &response.counter); err != nil {
+		if err == io.ErrUnexpectedEOF {
+			return response, err
+		}
+		return response, fmt.Errorf("failed to read counter: %w", err)
 	}
 
 	if err := binary.Read(r, binary.BigEndian, &response.messageSize); err != nil {
@@ -187,9 +216,15 @@ func ParseProcessResponse(r io.Reader, responseCommon ResponseCommon) (ProcessRe
 // Bytes returns the byte representation of the ProcessResponse.
 func (g ProcessResponse) Bytes() []byte {
 	buffer := g.ResponseCommon.Bytes()
+	buffer = binary.BigEndian.AppendUint64(buffer, g.counter)
 	buffer = binary.BigEndian.AppendUint64(buffer, g.messageSize)
 	buffer = append(buffer, g.message...)
 	return buffer
+}
+
+// Counter returns the message counter used to derive the AEAD nonce.
+func (g ProcessResponse) Counter() uint64 {
+	return g.counter
 }
 
 // Message returns the encrypted message.

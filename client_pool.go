@@ -17,8 +17,7 @@ type ClientPool struct {
 	maxIdleClients  int64
 	maxOpenClients  int64
 	waitingClients  chan *Client
-	secret          []byte
-	id              [16]byte
+	session         *clientSession
 }
 
 // NewClientPool creates a new client pool.
@@ -69,7 +68,7 @@ func (cp *ClientPool) Get() (*Client, error) {
 	var client *Client
 	var err error
 
-	if cp.secret == nil {
+	if cp.session == nil {
 		client, err = DialTCP(cp.hostport, cp.clientOptions...)
 		if err != nil {
 			cp.poolMutex.Unlock()
@@ -77,8 +76,9 @@ func (cp *ClientPool) Get() (*Client, error) {
 		}
 		client.pool = cp
 
-		cp.secret = client.secret
-		cp.id = client.id
+		// Share the established session (secret, id, and send counter) so every
+		// pooled connection increments the same counter and never reuses a nonce.
+		cp.session = client.session
 
 	} else {
 		client, err = dialTCP(cp.hostport, cp.clientOptions...)
@@ -88,8 +88,7 @@ func (cp *ClientPool) Get() (*Client, error) {
 		}
 		client.pool = cp
 
-		client.secret = cp.secret
-		client.id = cp.id
+		client.session = cp.session
 	}
 
 	cp.numberOfClients++
@@ -129,8 +128,7 @@ func (cp *ClientPool) Close() error {
 
 	cp.idleClients = nil
 	cp.numberOfClients = 0
-	cp.secret = nil
-	cp.id = [16]byte{}
+	cp.session = nil
 	close(cp.waitingClients)
 
 	return nil

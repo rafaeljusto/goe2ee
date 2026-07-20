@@ -338,5 +338,10 @@ func (s *Server) handlePacketConnection(conn net.PacketConn, logger *log.Logger)
 func (s *Server) Close() error {
 	close(s.quit)
 	s.wg.Wait()
+	// Release resources held by the secret manager (e.g. the in-memory
+	// manager's garbage-collection goroutine) when it supports it.
+	if closer, ok := s.secretManager.(io.Closer); ok {
+		return closer.Close()
+	}
 	return nil
 }

@@ -10,6 +10,7 @@ import (
 	"net"
 
 	"github.com/rafaeljusto/goe2ee/protocol"
+	"github.com/rafaeljusto/goe2ee/secret"
 )
 
 func (h HandlerV1) setupHandler(requestCommon protocol.RequestCommon, conn net.Conn) error {
@@ -39,7 +40,7 @@ func (h HandlerV1) setupHandler(requestCommon protocol.RequestCommon, conn net.C
 		return nil
 	}
 
-	secret, err := serverPrivateKey.ECDH(request.PublicKey())
+	sharedSecret, err := serverPrivateKey.ECDH(request.PublicKey())
 	if err != nil {
 		h.logger.Printf("failed to generate shared secret: %v", err)
 		errResponse := protocol.NewErrorResponse(
@@ -111,7 +112,7 @@ func (h HandlerV1) setupHandler(requestCommon protocol.RequestCommon, conn net.C
 		return nil
 	}
 
-	err = h.secrets.Store(base64.StdEncoding.EncodeToString(idHash.Sum(nil)), secret)
+	err = h.secrets.Store(base64.StdEncoding.EncodeToString(idHash.Sum(nil)), secret.NewSession(sharedSecret))
 	if err != nil {
 		h.logger.Printf("failed to store shared secret: %v", err)
 		errResponse := protocol.NewErrorResponse(
@@ -126,8 +127,24 @@ func (h HandlerV1) setupHandler(requestCommon protocol.RequestCommon, conn net.C
 
 	response := protocol.NewSetupResponse(serverPrivateKey.PublicKey())
 
+	// Sign the full handshake transcript (both public keys and the session id)
+	// rather than just the response, so the signature is bound to this exact
+	// exchange and cannot be replayed against a different client.
+	transcript, err := protocol.SetupTranscript(request.PublicKey(), serverPrivateKey.PublicKey(), id)
+	if err != nil {
+		h.logger.Printf("failed to build setup transcript: %v", err)
+		errResponse := protocol.NewErrorResponse(
+			protocol.ErrorCodeServerError,
+			"failed to build setup transcript",
+		).Bytes()
+		if !h.writeErrorResponse(conn, errResponse) {
+			return io.ErrShortWrite
+		}
+		return nil
+	}
+
 	hashType := crypto.SHA512
-	signature, err := h.keyManager.Sign(hashType, response.Bytes())
+	signature, err := h.keyManager.Sign(hashType, transcript)
 	if err != nil {
 		h.logger.Printf("failed to sign response: %v", err)
 		errResponse := protocol.NewErrorResponse(
