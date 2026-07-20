@@ -41,13 +41,15 @@ func (p PublicKey) VerifySignature(hashType crypto.Hash, content, signature []by
 	var valid bool
 	switch publicKey := p.PublicKey.(type) {
 	case *rsa.PublicKey:
-		valid = rsa.VerifyPKCS1v15(publicKey, crypto.SHA512, hashedMessage, signature) == nil
+		valid = rsa.VerifyPKCS1v15(publicKey, hashType, hashedMessage, signature) == nil
 	case *ecdsa.PublicKey:
 		valid = ecdsa.VerifyASN1(publicKey, hashedMessage, signature)
 	case ed25519.PublicKey:
-		valid = ed25519.VerifyWithOptions(publicKey, hashedMessage, signature, &ed25519.Options{
-			Hash: crypto.SHA512,
-		}) == nil
+		// The signer (ServerManagerInMemory.Sign) uses pure Ed25519 over the
+		// already-hashed message, so verification must use the same mode.
+		// Ed25519ph (VerifyWithOptions with a Hash) is a different algorithm and
+		// would never validate signatures produced by ed25519.Sign.
+		valid = ed25519.Verify(publicKey, hashedMessage, signature)
 	default:
 		return false, fmt.Errorf("public key %T not supported", publicKey)
 	}
