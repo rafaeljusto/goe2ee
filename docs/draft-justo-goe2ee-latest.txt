@@ -4,8 +4,8 @@
 
 Network Working Group                                        R. D. Justo
 Internet-Draft                                              Teamwork.com
-Intended status: Informational                              20 July 2026
-Expires: 21 January 2027
+Intended status: Informational                              27 July 2026
+Expires: 28 January 2027
 
 
    GoE2EE: An End-to-End Encryption Protocol with Flexible Server Key
@@ -53,12 +53,12 @@ Status of This Memo
 
 
 
-Justo                    Expires 21 January 2027                [Page 1]
+Justo                    Expires 28 January 2027                [Page 1]
 
 Internet-Draft                   GoE2EE                        July 2026
 
 
-   This Internet-Draft will expire on 21 January 2027.
+   This Internet-Draft will expire on 28 January 2027.
 
 Copyright Notice
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Justo                    Expires 21 January 2027                [Page 2]
+Justo                    Expires 28 January 2027                [Page 2]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -165,7 +165,7 @@ Internet-Draft                   GoE2EE                        July 2026
 
 
 
-Justo                    Expires 21 January 2027                [Page 3]
+Justo                    Expires 28 January 2027                [Page 3]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -221,7 +221,7 @@ Internet-Draft                   GoE2EE                        July 2026
 
 
 
-Justo                    Expires 21 January 2027                [Page 4]
+Justo                    Expires 28 January 2027                [Page 4]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -277,7 +277,7 @@ Internet-Draft                   GoE2EE                        July 2026
 
 
 
-Justo                    Expires 21 January 2027                [Page 5]
+Justo                    Expires 28 January 2027                [Page 5]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -333,7 +333,7 @@ Internet-Draft                   GoE2EE                        July 2026
 
 
 
-Justo                    Expires 21 January 2027                [Page 6]
+Justo                    Expires 28 January 2027                [Page 6]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -389,7 +389,7 @@ Internet-Draft                   GoE2EE                        July 2026
 
 
 
-Justo                    Expires 21 January 2027                [Page 7]
+Justo                    Expires 28 January 2027                [Page 7]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -445,7 +445,7 @@ Internet-Draft                   GoE2EE                        July 2026
 
 
 
-Justo                    Expires 21 January 2027                [Page 8]
+Justo                    Expires 28 January 2027                [Page 8]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -501,7 +501,7 @@ Internet-Draft                   GoE2EE                        July 2026
 
 
 
-Justo                    Expires 21 January 2027                [Page 9]
+Justo                    Expires 28 January 2027                [Page 9]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -557,7 +557,7 @@ Internet-Draft                   GoE2EE                        July 2026
 
 
 
-Justo                    Expires 21 January 2027               [Page 10]
+Justo                    Expires 28 January 2027               [Page 10]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -613,7 +613,7 @@ Internet-Draft                   GoE2EE                        July 2026
 
 
 
-Justo                    Expires 21 January 2027               [Page 11]
+Justo                    Expires 28 January 2027               [Page 11]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -669,7 +669,7 @@ Internet-Draft                   GoE2EE                        July 2026
 
 
 
-Justo                    Expires 21 January 2027               [Page 12]
+Justo                    Expires 28 January 2027               [Page 12]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -725,7 +725,7 @@ Internet-Draft                   GoE2EE                        July 2026
 
 
 
-Justo                    Expires 21 January 2027               [Page 13]
+Justo                    Expires 28 January 2027               [Page 13]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -781,7 +781,7 @@ Internet-Draft                   GoE2EE                        July 2026
 
 
 
-Justo                    Expires 21 January 2027               [Page 14]
+Justo                    Expires 28 January 2027               [Page 14]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -837,7 +837,7 @@ Internet-Draft                   GoE2EE                        July 2026
 
 
 
-Justo                    Expires 21 January 2027               [Page 15]
+Justo                    Expires 28 January 2027               [Page 15]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -893,7 +893,7 @@ Internet-Draft                   GoE2EE                        July 2026
 
 
 
-Justo                    Expires 21 January 2027               [Page 16]
+Justo                    Expires 28 January 2027               [Page 16]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -949,7 +949,7 @@ Internet-Draft                   GoE2EE                        July 2026
 
 
 
-Justo                    Expires 21 January 2027               [Page 17]
+Justo                    Expires 28 January 2027               [Page 17]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -1005,7 +1005,7 @@ Internet-Draft                   GoE2EE                        July 2026
 
 
 
-Justo                    Expires 21 January 2027               [Page 18]
+Justo                    Expires 28 January 2027               [Page 18]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -1061,7 +1061,7 @@ Internet-Draft                   GoE2EE                        July 2026
 
 
 
-Justo                    Expires 21 January 2027               [Page 19]
+Justo                    Expires 28 January 2027               [Page 19]
 
 Internet-Draft                   GoE2EE                        July 2026
 
@@ -1117,4 +1117,4 @@ Author's Address
 
 
 
-Justo                    Expires 21 January 2027               [Page 20]
+Justo                    Expires 28 January 2027               [Page 20]
